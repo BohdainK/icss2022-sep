@@ -7,6 +7,9 @@ This tutorial is tested with Java version 17 (OpenJDK), IntelliJ and Maven. To e
 ICSSTool is a `pom.xml` based, Maven-runnable application.
 You can compile the application with the following command:
 
+```export JAVA_HOME=`/usr/libexec/java_home -v 21` ```
+zoals afgesproken met Michel
+
 ```mvn compile```
 
 then run it with either

@@ -46,7 +46,7 @@ ASSIGNMENT_OPERATOR: ':=';
 
 //--- PARSER: ---
 
-stylesheet: EOF;
+stylesheet: variableAssignment* styleRule* EOF;
 
 // A Declaration defines a style property. Declarations are things like "width: 100px"
 declaration: propertyName COLON expression SEMICOLON;
