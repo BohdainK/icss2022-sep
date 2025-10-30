@@ -2,13 +2,14 @@ package nl.han.ica.datastructures;
 
 import java.util.NoSuchElementException;
 
-
 public class HANLinkedList<T> implements IHANLinkedList<T> {
+
     private ListNode<T> head;
     private int size;
 
     /**
      * Adds value to the front of the list
+     *
      * @param value generic value to be added
      */
     @Override
@@ -23,7 +24,6 @@ public class HANLinkedList<T> implements IHANLinkedList<T> {
         this.size++;
     }
 
-
     /**
      * Clears list. Size equals 0 afterwards
      */
@@ -35,6 +35,7 @@ public class HANLinkedList<T> implements IHANLinkedList<T> {
 
     /**
      * Adds value to index position
+     *
      * @param index the position
      * @param value the value to add at index
      */
@@ -62,6 +63,7 @@ public class HANLinkedList<T> implements IHANLinkedList<T> {
 
     /**
      * Deletes value at position
+     *
      * @param pos position where value is deleted
      */
     @Override
@@ -85,6 +87,7 @@ public class HANLinkedList<T> implements IHANLinkedList<T> {
 
     /**
      * Returns generic value T at postion
+     *
      * @param pos position to look up value
      * @return value at position pos
      */
@@ -114,19 +117,18 @@ public class HANLinkedList<T> implements IHANLinkedList<T> {
             throw new NoSuchElementException();
         }
 
-        if (this.head != null) {
-            this.head = this.head.getNext();
-            size--;
-        }
+        this.head = this.head.getNext();
+        size--;
 
     }
 
     /**
      * Returns first element in O(n) time
+     *
      * @return first element
      */
     @Override
-    public T getFirst(){
+    public T getFirst() {
         if (this.head == null) {
             throw new NoSuchElementException();
         }
@@ -134,12 +136,14 @@ public class HANLinkedList<T> implements IHANLinkedList<T> {
     }
 
     /**
-     * Determines size of the list, equals the number of stored items but not the header node
+     * Determines size of the list, equals the number of stored items but not
+     * the header node
+     *
      * @return number of items in list
      */
     @Override
-    public int getSize(){
+    public int getSize() {
         return this.size;
     }
-    
+
 }

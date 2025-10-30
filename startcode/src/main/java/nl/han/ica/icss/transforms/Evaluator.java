@@ -151,6 +151,7 @@ public class Evaluator implements Transform {
             AddOperation addOp = (AddOperation) expression;
             Literal lhs = evaluateExpression(addOp.lhs);
             Literal rhs = evaluateExpression(addOp.rhs);
+            // addition of same-type literals
             if (lhs instanceof ScalarLiteral && rhs instanceof ScalarLiteral) {
                 double result = ((ScalarLiteral) lhs).value + ((ScalarLiteral) rhs).value;
                 return new ScalarLiteral(Double.toString(result));
@@ -163,11 +164,11 @@ public class Evaluator implements Transform {
             } else {
                 return null;
             }
-
         } else if (expression instanceof SubtractOperation) {
             SubtractOperation subOp = (SubtractOperation) expression;
             Literal lhs = evaluateExpression(subOp.lhs);
             Literal rhs = evaluateExpression(subOp.rhs);
+            // subtraction of same-type literals
             if (lhs instanceof ScalarLiteral && rhs instanceof ScalarLiteral) {
                 double result = ((ScalarLiteral) lhs).value - ((ScalarLiteral) rhs).value;
                 return new ScalarLiteral(Double.toString(result));
@@ -180,15 +181,14 @@ public class Evaluator implements Transform {
             } else {
                 return null;
             }
-
         } else if (expression instanceof MultiplyOperation) {
             MultiplyOperation mulOp = (MultiplyOperation) expression;
             Literal lhs = evaluateExpression(mulOp.lhs);
             Literal rhs = evaluateExpression(mulOp.rhs);
+            // multiplication with scalar
             if (lhs instanceof ScalarLiteral && rhs instanceof ScalarLiteral) {
                 double result = ((ScalarLiteral) lhs).value * ((ScalarLiteral) rhs).value;
                 return new ScalarLiteral(Double.toString(result));
-
             } else if (lhs instanceof ScalarLiteral) {
                 if (rhs instanceof PixelLiteral) {
                     int result = (int) (((ScalarLiteral) lhs).value * ((PixelLiteral) rhs).value);
@@ -197,7 +197,6 @@ public class Evaluator implements Transform {
                     double result = ((ScalarLiteral) lhs).value * ((PercentageLiteral) rhs).value;
                     return new PercentageLiteral(Double.toString(result) + "%");
                 }
-
             } else if (rhs instanceof ScalarLiteral) {
                 if (lhs instanceof PixelLiteral) {
                     int result = (int) (((ScalarLiteral) rhs).value * ((PixelLiteral) lhs).value);
