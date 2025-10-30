@@ -19,7 +19,8 @@ public class Generator {
         return generateStylesheet(ast.root);
     }
 
-private String generateStylesheet(Stylesheet stylesheet) {
+    //CSS from stylesheet
+    private String generateStylesheet(Stylesheet stylesheet) {
         StringBuilder css = new StringBuilder();
 
         for (ASTNode child : stylesheet.getChildren()) {
@@ -31,6 +32,7 @@ private String generateStylesheet(Stylesheet stylesheet) {
         return css.toString();
     }
 
+    //CSS for single style rule
     private String generateStylerule(Stylerule stylerule) {
         StringBuilder css = new StringBuilder();
 
@@ -41,12 +43,14 @@ private String generateStylesheet(Stylesheet stylesheet) {
         return css.toString();
     }
 
+    //CSS selectors for rule
     private String generateSelectors(Stylerule stylerule) {
         return stylerule.selectors.stream()
                 .map(ASTNode::toString)
                 .collect(Collectors.joining(", ")) + " {\n";
     }
 
+    //CSS declarations inside rule
     private String generateDeclarations(Stylerule stylerule) {
         StringBuilder css = new StringBuilder();
 
@@ -56,16 +60,17 @@ private String generateStylesheet(Stylesheet stylesheet) {
                 css.append(generateDeclaration((Declaration) child));
             }
         }
-
         return css.toString();
     }
 
+    //CSS for single property and value
     private String generateDeclaration(Declaration declaration) {
         return declaration.property.name + ": "
                 + generateExpression(declaration.expression)
                 + ";\n";
     }
 
+    //CSS for expression values
     private String generateExpression(Expression expression) {
         if (expression instanceof PercentageLiteral) {
             return ((PercentageLiteral) expression).value + "%";

@@ -17,13 +17,13 @@ import nl.han.ica.icss.ast.VariableAssignment;
 import nl.han.ica.icss.ast.VariableReference;
 import nl.han.ica.icss.ast.literals.BoolLiteral;
 import nl.han.ica.icss.ast.literals.ColorLiteral;
+import nl.han.ica.icss.ast.literals.PercentageLiteral;
 import nl.han.ica.icss.ast.literals.PixelLiteral;
 import nl.han.ica.icss.ast.literals.ScalarLiteral;
 import nl.han.ica.icss.ast.operations.AddOperation;
 import nl.han.ica.icss.ast.operations.MultiplyOperation;
 import nl.han.ica.icss.ast.operations.SubtractOperation;
 import nl.han.ica.icss.ast.types.ExpressionType;
-
 
 public class Checker {
 
@@ -35,20 +35,19 @@ public class Checker {
         checkNode(ast.root);
     }
 
-
     private void checkNode(ASTNode node) {
         // Stylesheet
-        if(node instanceof Stylesheet) {
-            for(ASTNode child : node.getChildren()) {
+        if (node instanceof Stylesheet) {
+            for (ASTNode child : node.getChildren()) {
                 checkNode(child);
             }
             return;
         }
 
         // Stylerule
-        if(node instanceof Stylerule) {
+        if (node instanceof Stylerule) {
             variableTypes.addFirst(new HashMap<>());
-            for(ASTNode child : node.getChildren()) {
+            for (ASTNode child : node.getChildren()) {
                 checkNode(child);
             }
             variableTypes.removeFirst();
@@ -56,26 +55,27 @@ public class Checker {
         }
 
         // IfClause
-        if(node instanceof IfClause) {
+        if (node instanceof IfClause) {
             IfClause ifClause = (IfClause) node;
             ExpressionType conditionType = evaluateExpression(ifClause.getConditionalExpression());
-            if(conditionType != ExpressionType.BOOL) {
+            if (conditionType != ExpressionType.BOOL) {
                 node.setError("expression not bool");
             }
             variableTypes.addFirst(new HashMap<>());
-            for(ASTNode child : ifClause.body) {
+            for (ASTNode child : ifClause.body) {
                 checkNode(child);
             }
-            if(ifClause.getElseClause() != null) {
+            if (ifClause.getElseClause() != null) {
                 checkNode(ifClause.getElseClause());
             }
             variableTypes.removeFirst();
             return;
         }
 
-        if(node instanceof ElseClause) {
+        // ElseClause
+        if (node instanceof ElseClause) {
             variableTypes.addFirst(new HashMap<>());
-            for(ASTNode child : node.getChildren()) {
+            for (ASTNode child : node.getChildren()) {
                 checkNode(child);
             }
             variableTypes.removeFirst();
@@ -83,51 +83,73 @@ public class Checker {
         }
 
         // Variable assignment
-        if(node instanceof VariableAssignment) {
+        if (node instanceof VariableAssignment) {
             VariableAssignment variableAssignment = (VariableAssignment) node;
             ExpressionType type = evaluateExpression(variableAssignment.expression);
             String name = variableAssignment.name.name;
-            variableTypes.getFirst().put(name, type);
+            if (type == ExpressionType.UNDEFINED) {
+                variableAssignment.setError("assignment has undefined expression");
+            } else {
+                variableTypes.getFirst().put(name, type);
+            }
             return;
         }
 
-        // Declaration
-        if(node instanceof Declaration) {
+        // Property declaration
+        if (node instanceof Declaration) {
             Declaration decleration = (Declaration) node;
             ExpressionType type = evaluateExpression(decleration.expression);
+            if (type == ExpressionType.UNDEFINED) {
+                decleration.setError("declaration has undefined expression");
+                return;
+            }
             String property = decleration.property.name.toLowerCase();
-            if(property.contains("color")) {
-                if(type != ExpressionType.COLOR) {
+            if (property.contains("color")) {
+                if (type != ExpressionType.COLOR) {
                     node.setError("not color literal " + property);
                 }
             } else {
-                if(type == ExpressionType.COLOR) {
+                if (type == ExpressionType.COLOR) {
                     node.setError("Color cannot be used for property " + property);
                 }
             }
             return;
         }
 
-        // Generic: recurse
-        for(ASTNode child : node.getChildren()) {
+        for (ASTNode child : node.getChildren()) {
             checkNode(child);
         }
     }
 
     // Evaluate the type of an expression
     private ExpressionType evaluateExpression(Expression expression) {
-        if(expression == null) return ExpressionType.UNDEFINED;
+        if (expression == null) {
+            return ExpressionType.UNDEFINED;
+        }
 
-        if(expression instanceof ColorLiteral) return ExpressionType.COLOR;
-        if(expression instanceof PixelLiteral) return ExpressionType.PIXEL;
-        if(expression instanceof ScalarLiteral) return ExpressionType.SCALAR;
-        if(expression instanceof BoolLiteral) return ExpressionType.BOOL;
+        // Literals
+        if (expression instanceof ColorLiteral) {
+            return ExpressionType.COLOR;
+        }
+        if (expression instanceof PercentageLiteral) {
+            return ExpressionType.PERCENTAGE;
+        }
+        if (expression instanceof PixelLiteral) {
+            return ExpressionType.PIXEL;
+        }
+        if (expression instanceof ScalarLiteral) {
+            return ExpressionType.SCALAR;
+        }
+        if (expression instanceof BoolLiteral) {
+            return ExpressionType.BOOL;
+        }
 
-        if(expression instanceof VariableReference) {
+        // Variable reference
+        if (expression instanceof VariableReference) {
             String name = ((VariableReference) expression).name;
-            for(int i = 0; i < variableTypes.getSize(); i++) {
+            for (int i = 0; i < variableTypes.getSize(); i++) {
                 HashMap<String, ExpressionType> scope = variableTypes.get(i);
-                if(scope.containsKey(name)) {
+                if (scope.containsKey(name)) {
                     return scope.get(name);
                 }
             }
@@ -135,24 +157,33 @@ public class Checker {
             return ExpressionType.UNDEFINED;
         }
 
-        if(expression instanceof Operation) {
+        // Operations
+        if (expression instanceof Operation) {
             Operation operation = (Operation) expression;
             ExpressionType lhs = evaluateExpression(operation.lhs);
             ExpressionType rhs = evaluateExpression(operation.rhs);
-            if(lhs == ExpressionType.COLOR || rhs == ExpressionType.COLOR) {
+            if (lhs == ExpressionType.COLOR || rhs == ExpressionType.COLOR) {
                 expression.setError("Colors cannot be used in operations");
                 return ExpressionType.UNDEFINED;
             }
-            if(expression instanceof AddOperation || expression instanceof SubtractOperation) {
-                if(lhs != rhs) {
+
+            // Addition and Subtraction
+            if (expression instanceof AddOperation || expression instanceof SubtractOperation) {
+                if (lhs != rhs) {
                     expression.setError("must be same type for + and -");
                     return ExpressionType.UNDEFINED;
                 }
                 return lhs;
             }
-            if(expression instanceof MultiplyOperation) {
-                if(lhs == ExpressionType.SCALAR && rhs != ExpressionType.UNDEFINED) return rhs;
-                if(rhs == ExpressionType.SCALAR && lhs != ExpressionType.UNDEFINED) return lhs;
+
+            // Multiplication
+            if (expression instanceof MultiplyOperation) {
+                if (lhs == ExpressionType.SCALAR && rhs != ExpressionType.UNDEFINED) {
+                    return rhs;
+                }
+                if (rhs == ExpressionType.SCALAR && lhs != ExpressionType.UNDEFINED) {
+                    return lhs;
+                }
                 expression.setError("Multiplication requires one or more scalar values");
                 return ExpressionType.UNDEFINED;
             }

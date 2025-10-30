@@ -37,6 +37,7 @@ public class Evaluator implements Transform {
         evaluateStylesheet(ast.root);
     }
 
+    // evaluate all top-level nodes in stylesheet
     private void evaluateStylesheet(Stylesheet stylesheet) {
         for (ASTNode child : stylesheet.getChildren()) {
             if (child instanceof VariableAssignment) {
@@ -47,9 +48,9 @@ public class Evaluator implements Transform {
         }
     }
 
+    // evaluate variable assignment and store result
     private void evaluateVariableAssignment(VariableAssignment variableAssignment) {
         Literal value = evaluateExpression(variableAssignment.expression);
-
         if (value != null) {
             variableValues.getFirst().put(variableAssignment.name.name, value);
         } else {
@@ -57,10 +58,10 @@ public class Evaluator implements Transform {
         }
     }
 
+    // evaluate declarations and if-clauses within a stylerule
     private void evaluateStylerule(Stylerule stylerule) {
         IHANLinkedList<ASTNode> evaluatedChildren = new HANLinkedList<>();
 
-        // Insert nodes in order using insert
         int index = 0;
         for (int i = 0; i < stylerule.getChildren().size(); i++) {
             ASTNode child = stylerule.getChildren().get(i);
@@ -81,6 +82,7 @@ public class Evaluator implements Transform {
         }
     }
 
+    // evaluate if/else clauses and insert result
     private int evaluateIfClause(IfClause ifClause, IHANLinkedList<ASTNode> evaluatedChildren, int startIndex) {
         Literal condition = evaluateExpression(ifClause.conditionalExpression);
 
@@ -112,48 +114,7 @@ public class Evaluator implements Transform {
         return index;
     }
 
-    // private void evaluateStylerule(Stylerule stylerule) {
-    //     IHANLinkedList<ASTNode> evaluatedChildren = new HANLinkedList<>();
-    //     for (ASTNode child : stylerule.getChildren()) {
-    //         if (child instanceof Declaration) {
-    //             evaluateDeclaration((Declaration) child);
-    //             evaluatedChildren.add(child);
-    //         } else if (child instanceof IfClause) {
-    //             evaluateIfClause((IfClause) child, evaluatedChildren);
-    //         } else {
-    //             evaluatedChildren.add(child);
-    //         }
-    //     }
-    //     stylerule.setChildren(evaluatedChildren);
-    // }
-    // private void evaluateIfClause(IfClause ifClause, IHANLinkedList<ASTNode> evaluatedChildren) {
-    //     Literal condition = evaluateExpression(ifClause.conditionalExpression);
-    //     if (condition instanceof BoolLiteral) {
-    //         BoolLiteral bool = (BoolLiteral) condition;
-    //         if (bool.value) {
-    //             // If TRUE → add all nodes in if body
-    //             for (ASTNode node : ifClause.body) {
-    //                 if (node instanceof Declaration) {
-    //                     evaluateDeclaration((Declaration) node);
-    //                 }
-    //                 evaluatedChildren.add(node);
-    //             }
-    //         } else {
-    //             // If FALSE → add else body if it exists
-    //             if (ifClause.elseClause != null) {
-    //                 for (ASTNode node : ifClause.elseClause.body) {
-    //                     if (node instanceof Declaration) {
-    //                         evaluateDeclaration((Declaration) node);
-    //                     }
-    //                     evaluatedChildren.add(node);
-    //                 }
-    //             }
-    //             // If FALSE and no elseClause → do nothing (IfClause is removed)
-    //         }
-    //     } else {
-    //         throw new RuntimeException("Condition in IfClause did not evaluate to a BoolLiteral.");
-    //     }
-    // }
+    // evaluate declaration expression
     private void evaluateDeclaration(Declaration declaration) {
         Literal value = evaluateExpression(declaration.expression);
 
@@ -164,6 +125,7 @@ public class Evaluator implements Transform {
         }
     }
 
+    // evaluate expression
     private Literal evaluateExpression(Expression expression) {
         if (expression instanceof VariableReference) {
             return variableValues.getFirst().get(((VariableReference) expression).name);
@@ -183,6 +145,7 @@ public class Evaluator implements Transform {
         return null;
     }
 
+    // handle +, -, * operations
     private Literal evaluateBinaryOperation(Expression expression) {
         if (expression instanceof AddOperation) {
             AddOperation addOp = (AddOperation) expression;
