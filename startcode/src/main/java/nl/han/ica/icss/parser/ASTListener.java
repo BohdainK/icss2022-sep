@@ -72,6 +72,8 @@ public class ASTListener extends ICSSBaseListener {
         popContainerAndAddToParent();
     }
 
+
+	// selectors
     @Override
     public void exitClassSelector(ICSSParser.ClassSelectorContext ctx) {
         ClassSelector classSelector = new ClassSelector(ctx.getText());
@@ -103,12 +105,6 @@ public class ASTListener extends ICSSBaseListener {
     }
 
     // property name
-    @Override
-    public void enterPropertyName(ICSSParser.PropertyNameContext ctx) {
-        PropertyName property = new PropertyName(ctx.getText());
-        addNodeToCurrentContainer(property);
-    }
-
     @Override
     public void exitPropertyName(ICSSParser.PropertyNameContext ctx) {
         PropertyName property = new PropertyName(ctx.getText());
@@ -164,13 +160,13 @@ public class ASTListener extends ICSSBaseListener {
             String operation = ctx.getChild(1).getText();
             switch (operation) {
                 case "+":
-                    currentContainer.push(new AddOperation());
+					pushContainer(new AddOperation());
                     break;
                 case "-":
-                    currentContainer.push(new SubtractOperation());
-                    break;
+					pushContainer(new SubtractOperation());
+					break;
                 case "*":
-                    currentContainer.push(new MultiplyOperation());
+					pushContainer(new MultiplyOperation());
                     break;
                 default:
                     break;
